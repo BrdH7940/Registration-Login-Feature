@@ -2,8 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import loginFoodImage from '@/assets/login-food.jfif'
-
-const softEase = [0.25, 0.8, 0.25, 1] as const
+import { softEase } from '@/lib/motion'
 
 export default function Home() {
     return (

@@ -2,46 +2,19 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link, useLocation } from 'react-router-dom'
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ArrowLeft, CheckCircle2, Coffee } from 'lucide-react'
-
-const softEase = [0.25, 0.8, 0.25, 1] as const
-const containerVariants = {
-    hidden: { opacity: 0, y: 40 },
-    show: {
-        opacity: 1,
-        y: 0,
-        transition: {
-            duration: 0.9,
-            ease: softEase,
-            staggerChildren: 0.1,
-            delayChildren: 0.1,
-        },
-    },
-}
-const floatVariants = {
-    hidden: { opacity: 0, y: 30 },
-    show: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.8, ease: softEase },
-    },
-}
-
-const cardTextureStyle: CSSProperties = {
-    backgroundImage:
-        "linear-gradient(135deg, rgba(255,250,243,0.97), rgba(255,242,227,0.94)), url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' preserveAspectRatio='none'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.25'/></svg>\")",
-    backgroundBlendMode: 'soft-light, normal',
-    backgroundSize: 'cover, 200px',
-    boxShadow:
-        'inset 0 0 0 1px rgba(255, 255, 255, 0.65), 0 20px 40px rgba(90, 60, 40, 0.12)',
-}
+import { FloatingLabelInput } from '@/components/auth/FloatingLabelInput'
+import {
+    cardTextureStyle,
+    containerVariants,
+    floatVariants,
+} from '@/lib/motion'
+import { useFloatingLabels } from '@/lib/use-floating-labels'
 
 const loginSchema = z.object({
     email: z
@@ -65,17 +38,8 @@ export default function Login() {
     } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
     })
-    const [focusedField, setFocusedField] = useState({
-        email: false,
-        password: false,
-    })
-    const fieldValues = watch()
-    const getFieldActive = (field: keyof LoginFormData) =>
-        focusedField[field] || Boolean(fieldValues[field])
-    const isFieldFilled = (field: keyof LoginFormData) =>
-        Boolean(fieldValues[field])
-    const handleFocus = (field: keyof LoginFormData, value: boolean) =>
-        setFocusedField((prev) => ({ ...prev, [field]: value }))
+    const { getFieldActive, isFieldFilled, handleFocusChange } =
+        useFloatingLabels(watch, ['email', 'password'])
 
     const onSubmit = (data: LoginFormData) => {
         // Mock login - simulate success after 1 second
@@ -168,143 +132,41 @@ export default function Login() {
                                     variants={floatVariants}
                                 >
                                     <div className="space-y-8">
-                                        <div className="space-y-1.5">
-                                            <Label
-                                                htmlFor="email"
-                                                className="pl-4 text-lg font-semibold text-[#4a2c2a]"
-                                            >
-                                                Email
-                                            </Label>
-                                            <div className="relative">
-                                                <motion.label
-                                                    htmlFor="email"
-                                                    animate={
-                                                        isFieldFilled('email')
-                                                            ? {
-                                                                  opacity: 0,
-                                                              }
-                                                            : {
-                                                                  scale: 1,
-                                                                  color: '#b0a695',
-                                                              }
-                                                    }
-                                                    transition={{
-                                                        duration: 0.35,
-                                                        ease: softEase,
-                                                    }}
-                                                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-semibold"
-                                                >
-                                                    Email address
-                                                </motion.label>
-                                                <Input
-                                                    id="email"
-                                                    type="email"
-                                                    placeholder=" "
-                                                    {...register('email')}
-                                                    onFocus={() =>
-                                                        handleFocus(
-                                                            'email',
-                                                            true
-                                                        )
-                                                    }
-                                                    onBlur={() =>
-                                                        handleFocus(
-                                                            'email',
-                                                            false
-                                                        )
-                                                    }
-                                                    className={`h-14 rounded-2xl border px-4 py-3 text-md text-[#4a3b32] placeholder-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] focus:ring-0 focus-visible:ring-0 ${
-                                                        getFieldActive('email')
-                                                            ? 'border-[#f59e0b] bg-[#fff4e6]'
-                                                            : 'border-[#e8dcca] bg-white/95'
-                                                    }`}
-                                                    aria-invalid={
-                                                        errors.email
-                                                            ? 'true'
-                                                            : 'false'
-                                                    }
-                                                />
-                                            </div>
-                                            {errors.email && (
-                                                <p
-                                                    className="text-md text-destructive"
-                                                    role="alert"
-                                                >
-                                                    {errors.email.message}
-                                                </p>
-                                            )}
-                                        </div>
+                                        <FloatingLabelInput
+                                            id="email"
+                                            label="Email"
+                                            type="email"
+                                            register={register('email')}
+                                            error={errors.email?.message}
+                                            isActive={getFieldActive('email')}
+                                            isFilled={isFieldFilled('email')}
+                                            onFocusChange={(value) =>
+                                                handleFocusChange(
+                                                    'email',
+                                                    value
+                                                )
+                                            }
+                                            labelClassName="text-lg"
+                                        />
 
-                                        <div className="space-y-1.5">
-                                            <Label
-                                                htmlFor="password"
-                                                className="pl-4 text-lg font-semibold text-[#4a2c2a]"
-                                            >
-                                                Password
-                                            </Label>
-                                            <div className="relative">
-                                                <motion.label
-                                                    htmlFor="password"
-                                                    animate={
-                                                        isFieldFilled(
-                                                            'password'
-                                                        )
-                                                            ? {
-                                                                  opacity: 0,
-                                                              }
-                                                            : {
-                                                                  scale: 1,
-                                                                  color: '#b0a695',
-                                                              }
-                                                    }
-                                                    transition={{
-                                                        duration: 0.35,
-                                                        ease: softEase,
-                                                    }}
-                                                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-semibold"
-                                                >
-                                                    Password
-                                                </motion.label>
-                                                <Input
-                                                    id="password"
-                                                    type="password"
-                                                    placeholder=" "
-                                                    {...register('password')}
-                                                    onFocus={() =>
-                                                        handleFocus(
-                                                            'password',
-                                                            true
-                                                        )
-                                                    }
-                                                    onBlur={() =>
-                                                        handleFocus(
-                                                            'password',
-                                                            false
-                                                        )
-                                                    }
-                                                    className={`h-14 rounded-2xl border px-4 py-3 text-md text-[#4a3b32] placeholder-transparent shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] transition-all duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] focus:ring-0 focus-visible:ring-0 ${
-                                                        getFieldActive(
-                                                            'password'
-                                                        )
-                                                            ? 'border-[#f59e0b] bg-[#fff4e6]'
-                                                            : 'border-[#e8dcca] bg-white/95'
-                                                    }`}
-                                                    aria-invalid={
-                                                        errors.password
-                                                            ? 'true'
-                                                            : 'false'
-                                                    }
-                                                />
-                                            </div>
-                                            {errors.password && (
-                                                <p
-                                                    className="text-md text-destructive"
-                                                    role="alert"
-                                                >
-                                                    {errors.password.message}
-                                                </p>
+                                        <FloatingLabelInput
+                                            id="password"
+                                            label="Password"
+                                            type="password"
+                                            register={register('password')}
+                                            error={errors.password?.message}
+                                            isActive={getFieldActive(
+                                                'password'
                                             )}
-                                        </div>
+                                            isFilled={isFieldFilled('password')}
+                                            onFocusChange={(value) =>
+                                                handleFocusChange(
+                                                    'password',
+                                                    value
+                                                )
+                                            }
+                                            labelClassName="text-lg"
+                                        />
                                     </div>
 
                                     <Button
