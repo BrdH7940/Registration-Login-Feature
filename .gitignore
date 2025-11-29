@@ -1,6 +1,9 @@
 .env
 node_modules/
 .npm_cache/
+DEPLOYMENT.md
+ENV_VARIABLES.md
+QUICK_DEPLOY.md
 
 # Logs
 logs

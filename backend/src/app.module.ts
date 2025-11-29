@@ -9,6 +9,8 @@ import { HealthController } from './common/health/health.controller'
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      ignoreEnvFile: false, // Try to load .env file if it exists
+      // Will fallback to process.env if .env doesn't exist (like on Render)
     }),
     MongooseModule.forRoot(
       process.env.MONGODB_CONNECTIONSTRING ||
