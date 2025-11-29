@@ -34,4 +34,3 @@ export const cardTextureStyle: CSSProperties = {
     boxShadow:
         'inset 0 0 0 1px rgba(255, 255, 255, 0.65), 0 20px 40px rgba(90, 60, 40, 0.12)',
 }
-

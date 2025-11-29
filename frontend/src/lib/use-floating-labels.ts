@@ -1,9 +1,5 @@
 import { useState } from 'react'
-import type {
-    FieldValues,
-    Path,
-    UseFormWatch,
-} from 'react-hook-form'
+import type { FieldValues, Path, UseFormWatch } from 'react-hook-form'
 
 type FocusState<TFieldValues extends FieldValues> = Record<
     Path<TFieldValues>,
@@ -36,4 +32,3 @@ export function useFloatingLabels<TFieldValues extends FieldValues>(
 
     return { isFieldFilled, getFieldActive, handleFocusChange }
 }
-

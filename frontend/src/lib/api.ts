@@ -23,6 +23,19 @@ export interface RegisterResponse {
     }
 }
 
+export interface LoginRequest {
+    email: string
+    password: string
+}
+
+export interface LoginResponse {
+    message: string
+    user?: {
+        email: string
+        createdAt: string
+    }
+}
+
 export interface ApiError {
     message: string
     error?: string
@@ -47,6 +60,36 @@ export const userApi = {
                 throw apiError
             }
             throw { message: 'An unexpected error occurred' }
+        }
+    },
+    login: async (data: LoginRequest): Promise<LoginResponse> => {
+        try {
+            const response = await api.post<LoginResponse>('/user/login', data)
+            return response.data
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                // Extract error message from response
+                const errorData = error.response.data as ApiError | string
+                const errorMessage =
+                    typeof errorData === 'string'
+                        ? errorData
+                        : (errorData as ApiError)?.message ||
+                          error.message ||
+                          'An error occurred during login'
+
+                // Throw as Error instance so React Query handles it properly
+                const loginError = new Error(errorMessage) as Error & {
+                    data?: ApiError
+                }
+                loginError.data = { message: errorMessage }
+                throw loginError
+            }
+            const genericError = new Error(
+                error instanceof Error
+                    ? error.message
+                    : 'An unexpected error occurred'
+            )
+            throw genericError
         }
     },
 }

@@ -1,140 +1,90 @@
 # IA06 - User Registration System
 
-A complete User Registration System with NestJS backend and React frontend.
+NestJS backend + React frontend user registration system.
 
-## Project Structure
-
-```
-IA06/
-├── frontend/          # React frontend application
-└── backend/           # NestJS backend API (to be implemented)
-```
-
-## Frontend Setup
+## Quick Start
 
 ### Prerequisites
 
--   Node.js (v18 or higher)
--   npm or yarn
+-   Node.js v18+
+-   MongoDB (local or Atlas)
 
-### Installation
+### Setup & Run
 
-1. Navigate to the frontend directory:
+**1. Backend (Terminal 1)**
+
+```bash
+cd backend
+npm install
+
+# Create backend/.env
+echo "PORT=3000
+CONNECTIONSTRING=mongodb://localhost:27017/ia06
+FRONTEND_URL=http://localhost:5173" > .env
+
+npm run start:dev
+```
+
+**2. Frontend (Terminal 2)**
 
 ```bash
 cd frontend
+npm install
+
+# Optional: Create frontend/.env
+echo "VITE_API_BASE_URL=http://localhost:3000" > .env
+
+npm run dev
 ```
 
-2. Install dependencies:
+**3. Access**
+
+-   Frontend: http://localhost:5173
+-   Backend API: http://localhost:3000
+
+## MongoDB Setup
+
+**Local (Docker):**
 
 ```bash
-npm install
+docker run -d -p 27017:27017 --name mongodb mongo:latest
 ```
 
-The following packages will be installed:
+**MongoDB Atlas:**
 
--   `react-router-dom` - For routing
--   `react-hook-form` - For form handling and validation
--   `@tanstack/react-query` - For API state management
--   `zod` - For schema validation
--   `@hookform/resolvers` - To integrate Zod with React Hook Form
--   `axios` - For HTTP requests
--   `@radix-ui/react-label` & `@radix-ui/react-alert-dialog` - UI components
+1. Create account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Get connection string
+3. Update `CONNECTIONSTRING` in `backend/.env`
 
-### Environment Variables
+## Environment Variables
 
-Create a `.env` file in the `frontend` directory:
+**backend/.env:**
+
+```env
+PORT=3000
+CONNECTIONSTRING=mongodb://localhost:27017/ia06
+FRONTEND_URL=http://localhost:5173
+```
+
+**frontend/.env (optional):**
 
 ```env
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
-Replace `http://localhost:3000` with your backend API URL.
+## API Endpoint
 
-### Running the Development Server
+**POST** `/user/register`
 
-```bash
-npm run dev
-```
+-   Request: `{ email: string, password: string }`
+-   Response: `{ message: string, user?: { email: string, createdAt: string } }`
 
-The application will be available at `http://localhost:5173` (or another port if 5173 is in use).
+## Features
 
-### Building for Production
-
-```bash
-npm run build
-```
-
-The built files will be in the `dist` directory.
-
-## Frontend Features
-
-### Pages
-
-1. **Home** (`/`) - Landing page with navigation to Sign Up and Login
-2. **Sign Up** (`/signup`) - User registration form with validation
-3. **Login** (`/login`) - Login form (UI only, mock implementation)
-
-### Components
-
--   **Form Validation**: Using React Hook Form with Zod schemas
--   **API Integration**: React Query for managing API requests and state
--   **UI Components**: shadcn/ui components (Button, Input, Label, Card, Alert)
--   **Error Handling**: Comprehensive error messages and visual feedback
--   **Responsive Design**: Mobile-friendly interface
-
-### API Integration
-
-The frontend is configured to communicate with the backend API at the `/user/register` endpoint:
-
--   **POST** `/user/register` - Register a new user
-    -   Request body: `{ email: string, password: string }`
-    -   Returns success message or error response
-
-## Backend Setup
-
-(To be implemented)
-
-The backend should provide:
-
--   User registration endpoint at `/user/register`
--   User schema with email (unique), password, and createdAt fields
--   Password hashing
--   CORS enabled for frontend requests
--   Environment variables for configuration
-
-## Development Notes
-
--   The frontend uses Vite as the build tool
--   Tailwind CSS is used for styling
--   TypeScript is enabled for type safety
--   ESLint is configured for code quality
-
-## Requirements Checklist
-
-### Frontend ✅
-
--   [x] Routing (Home, Login, Sign Up)
--   [x] Sign Up Page (Form, Validation, API Integration with React Query)
--   [x] Login Page (Form, Validation, UI with shadcn/ui)
--   [x] Styled with shadcn/ui and Tailwind CSS
--   [x] React Hook Form for validation
--   [x] React Query for API state management
-
-### Backend (To be implemented)
-
--   [ ] Database setup with User schema
--   [ ] POST /user/register endpoint
--   [ ] Input validation
--   [ ] Password hashing
--   [ ] Error handling
--   [ ] CORS configuration
--   [ ] Environment variables
-
-## Deployment
-
-For deployment, ensure:
-
-1. Set `VITE_API_BASE_URL` to your production backend URL
-2. Build the frontend: `npm run build`
-3. Deploy the `dist` folder to your hosting service
+-   ✅ User registration with email/password
+-   ✅ Password hashing (bcrypt)
+-   ✅ Input validation
+-   ✅ CORS enabled
+-   ✅ Error handling
+-   ✅ React Query for API calls
+-   ✅ Form validation (React Hook Form + Zod)

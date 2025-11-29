@@ -1,13 +1,21 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Link, useLocation } from 'react-router-dom'
+import { useMutation } from '@tanstack/react-query'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ArrowLeft, CheckCircle2, Coffee } from 'lucide-react'
+import { userApi } from '@/lib/api'
+import {
+    ArrowLeft,
+    CheckCircle2,
+    Coffee,
+    AlertCircle,
+    Loader2,
+} from 'lucide-react'
 import { FloatingLabelInput } from '@/components/auth/FloatingLabelInput'
 import {
     cardTextureStyle,
@@ -26,8 +34,14 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>
 
+type ApiError = {
+    message: string
+    error?: string
+}
+
 export default function Login() {
     const location = useLocation()
+    const navigate = useNavigate()
     const message = location.state?.message
 
     const {
@@ -41,18 +55,59 @@ export default function Login() {
     const { getFieldActive, isFieldFilled, handleFocusChange } =
         useFloatingLabels(watch, ['email', 'password'])
 
-    const onSubmit = (data: LoginFormData) => {
-        // Mock login - simulate success after 1 second
-        console.log('Login attempt:', data)
+    const mutation = useMutation({
+        mutationFn: userApi.login,
+        onSuccess: (data) => {
+            // On successful login, you can navigate to dashboard or show success message
+            // For now, we'll show a success message
+            console.log('Login successful:', data)
+            // You can add navigation here: navigate('/dashboard')
+        },
+        onError: (error) => {
+            // Error is already stored in mutation.error by React Query
+            console.error('Login error:', error)
+        },
+    })
 
-        // Simulate API call
-        setTimeout(() => {
-            alert(
-                'Login successful! (This is a mock - backend not implemented)'
+    const getErrorMessage = () => {
+        if (!mutation.error) {
+            return null
+        }
+
+        // Handle Error instance - most common case
+        if (mutation.error instanceof Error) {
+            const error = mutation.error as any
+            return (
+                error.data?.message ||
+                error.message ||
+                'An error occurred during login'
             )
-            // In a real app, you would navigate to a dashboard or protected route
-            // navigate('/dashboard')
-        }, 1000)
+        }
+
+        // Handle plain object
+        if (typeof mutation.error === 'object' && mutation.error !== null) {
+            const error = mutation.error as any
+            return (
+                error.message || error.error || 'An error occurred during login'
+            )
+        }
+
+        return 'An error occurred during login'
+    }
+
+    const errorMessage = getErrorMessage()
+
+    // Force re-compute error message when mutation state changes
+    useEffect(() => {
+        if (mutation.isError) {
+            // This ensures the error message is available for rendering
+            console.log('Error should be displayed:', errorMessage)
+        }
+    }, [mutation.isError, mutation.error, errorMessage])
+
+    const handleFormSubmit = (data: LoginFormData) => {
+        // React Query will automatically handle error state on new mutation
+        mutation.mutate(data)
     }
 
     // Clear location state message after component mounts
@@ -126,8 +181,34 @@ export default function Login() {
                                     </motion.div>
                                 )}
 
+                                {mutation.isSuccess && (
+                                    <motion.div variants={floatVariants}>
+                                        <Alert variant="success">
+                                            <CheckCircle2 className="h-4 w-4" />
+                                            <AlertDescription>
+                                                Login successful! Welcome back.
+                                            </AlertDescription>
+                                        </Alert>
+                                    </motion.div>
+                                )}
+
+                                {mutation.isError && (
+                                    <motion.div variants={floatVariants}>
+                                        <Alert
+                                            variant="destructive"
+                                            className="rounded-[8px] border-[#F5C6CB] bg-[#F8D7DA] text-[#721C24] [&>svg]:text-[#721C24]"
+                                        >
+                                            <AlertCircle className="h-4 w-4" />
+                                            <AlertDescription className="text-[#721C24]">
+                                                {errorMessage ||
+                                                    'An error occurred during login'}
+                                            </AlertDescription>
+                                        </Alert>
+                                    </motion.div>
+                                )}
+
                                 <motion.form
-                                    onSubmit={handleSubmit(onSubmit)}
+                                    onSubmit={handleSubmit(handleFormSubmit)}
                                     className="space-y-6"
                                     variants={floatVariants}
                                 >
@@ -172,8 +253,14 @@ export default function Login() {
                                     <Button
                                         type="submit"
                                         className="w-full rounded-full bg-[#f59e0b] py-3 text-lg font-semibold text-white shadow-[0_12px_30px_rgba(223,138,23,0.35)] transition-transform duration-300 ease-[cubic-bezier(0.25,0.8,0.25,1)] hover:bg-[#dd7a06] hover:-translate-y-0.5 hover:shadow-[0_25px_45px_rgba(223,138,23,0.45)] active:scale-[0.94] active:shadow-[inset_0_12px_24px_rgba(0,0,0,0.18)]"
+                                        disabled={mutation.isPending}
                                     >
-                                        Log In
+                                        {mutation.isPending && (
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        )}
+                                        {mutation.isPending
+                                            ? 'Logging in...'
+                                            : 'Log In'}
                                     </Button>
                                 </motion.form>
 

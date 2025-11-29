@@ -143,9 +143,12 @@ export default function SignUp() {
                             <CardContent className="space-y-8 p-0">
                                 {mutation.isSuccess && (
                                     <motion.div variants={floatVariants}>
-                                        <Alert variant="success">
+                                        <Alert
+                                            variant="success"
+                                            className="rounded-[8px] border-[#A8D5BA] bg-[#E6F4EA] text-[#2E7D32] [&>svg]:text-[#2E7D32]"
+                                        >
                                             <CheckCircle2 className="h-4 w-4" />
-                                            <AlertDescription>
+                                            <AlertDescription className="text-[#2E7D32]">
                                                 Account created successfully!
                                                 Redirecting to login...
                                             </AlertDescription>
