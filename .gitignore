@@ -4,6 +4,7 @@ node_modules/
 DEPLOYMENT.md
 ENV_VARIABLES.md
 QUICK_DEPLOY.md
+BLUEPRINT_DEPLOY.md
 
 # Logs
 logs

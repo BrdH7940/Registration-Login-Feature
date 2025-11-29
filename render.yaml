@@ -4,25 +4,32 @@ services:
       name: ia06-backend
       env: node
       plan: free
-      buildCommand: cd backend && npm install && npm run build
-      startCommand: cd backend && npm run start:prod
+      region: oregon
+      rootDir: backend
+      buildCommand: npm install && npm run build
+      startCommand: npm run start:prod
       envVars:
           - key: NODE_ENV
             value: production
           - key: PORT
             value: 10000
           - key: MONGODB_CONNECTIONSTRING
-            sync: false # Set this in Render dashboard
+            sync: false # REQUIRED: Set your MongoDB connection string in Render dashboard after first deploy
+          - key: CONNECTIONSTRING
+            sync: false # REQUIRED: Set same as MONGODB_CONNECTIONSTRING
           - key: FRONTEND_URL
-            sync: false # Set this after frontend is deployed
+            sync: false # Will be auto-filled after frontend deploys - see instructions
 
     # Frontend Service
     - type: web
       name: ia06-frontend
       env: static
-      buildCommand: cd frontend && npm install && npm run build
-      staticPublishPath: frontend/dist
+      region: oregon
+      rootDir: frontend
+      buildCommand: npm install && npm run build
+      staticPublishPath: dist
+      pullRequestPreviewsEnabled: false
       envVars:
           - key: VITE_API_BASE_URL
-            sync: false # Set this to your backend URL after deployment
+            sync: false # Will be auto-filled with backend URL - see instructions
 
