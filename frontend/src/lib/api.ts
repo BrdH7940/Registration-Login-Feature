@@ -50,16 +50,29 @@ export const userApi = {
             )
             return response.data
         } catch (error) {
-            if (axios.isAxiosError(error)) {
-                const apiError: ApiError = error.response?.data || {
-                    message:
-                        error.response?.data?.message ||
-                        error.message ||
-                        'An error occurred during registration',
+            if (axios.isAxiosError(error) && error.response) {
+                // Extract error message from response
+                const errorData = error.response.data as ApiError | string
+                const errorMessage =
+                    typeof errorData === 'string'
+                        ? errorData
+                        : (errorData as ApiError)?.message ||
+                          error.message ||
+                          'An error occurred during registration'
+
+                // Throw as Error instance so React Query handles it properly
+                const registerError = new Error(errorMessage) as Error & {
+                    data?: ApiError
                 }
-                throw apiError
+                registerError.data = { message: errorMessage }
+                throw registerError
             }
-            throw { message: 'An unexpected error occurred' }
+            const genericError = new Error(
+                error instanceof Error
+                    ? error.message
+                    : 'An unexpected error occurred'
+            )
+            throw genericError
         }
     },
     login: async (data: LoginRequest): Promise<LoginResponse> => {

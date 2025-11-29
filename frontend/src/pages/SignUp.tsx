@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
@@ -43,6 +44,8 @@ type ApiError = {
 
 export default function SignUp() {
     const navigate = useNavigate()
+    const [showSuccess, setShowSuccess] = useState(false)
+    const [showError, setShowError] = useState(false)
 
     const {
         register,
@@ -58,6 +61,8 @@ export default function SignUp() {
     const mutation = useMutation({
         mutationFn: userApi.register,
         onSuccess: () => {
+            setShowError(false)
+            setShowSuccess(true)
             setTimeout(() => {
                 navigate('/login', {
                     state: {
@@ -66,25 +71,47 @@ export default function SignUp() {
                 })
             }, 2000)
         },
+        onError: (error) => {
+            setShowSuccess(false)
+            setShowError(true)
+            // Clear error message after 5 seconds
+            setTimeout(() => {
+                setShowError(false)
+            }, 5000)
+        },
     })
 
     const onSubmit = (data: SignUpFormData) => {
+        // Clear previous notification states when submitting new form
+        setShowSuccess(false)
+        setShowError(false)
         mutation.mutate(data)
     }
 
     const getErrorMessage = () => {
         if (!mutation.error) return null
 
+        // Handle Error instance - most common case
         if (mutation.error instanceof Error) {
-            return mutation.error.message
+            const error = mutation.error as any
+            return (
+                error.data?.message ||
+                error.message ||
+                'An error occurred during registration'
+            )
         }
 
-        const apiError = mutation.error as ApiError
-        return (
-            apiError.message ||
-            apiError.error ||
-            'An error occurred during registration'
-        )
+        // Handle plain object
+        if (typeof mutation.error === 'object' && mutation.error !== null) {
+            const error = mutation.error as any
+            return (
+                error.message ||
+                error.error ||
+                'An error occurred during registration'
+            )
+        }
+
+        return 'An error occurred during registration'
     }
 
     const errorMessage = getErrorMessage()
@@ -141,14 +168,21 @@ export default function SignUp() {
                                 </CardTitle>
                             </motion.div>
                             <CardContent className="space-y-8 p-0">
-                                {mutation.isSuccess && (
-                                    <motion.div variants={floatVariants}>
+                                {showSuccess && (
+                                    <motion.div
+                                        variants={floatVariants}
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                    >
                                         <Alert
-                                            variant="success"
-                                            className="rounded-[8px] border-[#A8D5BA] bg-[#E6F4EA] text-[#2E7D32] [&>svg]:text-[#2E7D32]"
+                                            className="rounded-[8px] border-[#1B5E20] border-2 bg-transparent text-[#1B5E20] [&>svg]:text-[#1B5E20]"
+                                            style={{
+                                                backgroundColor: 'transparent',
+                                            }}
                                         >
                                             <CheckCircle2 className="h-4 w-4" />
-                                            <AlertDescription className="text-[#2E7D32]">
+                                            <AlertDescription className="text-[#1B5E20] font-medium text-lg">
                                                 Account created successfully!
                                                 Redirecting to login...
                                             </AlertDescription>
@@ -156,12 +190,21 @@ export default function SignUp() {
                                     </motion.div>
                                 )}
 
-                                {errorMessage && (
-                                    <motion.div variants={floatVariants}>
-                                        <Alert variant="destructive">
+                                {showError && (
+                                    <motion.div
+                                        variants={floatVariants}
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                    >
+                                        <Alert
+                                            variant="destructive"
+                                            className="rounded-[8px] border-[#721C24] bg-transparent text-[#721C24] [&>svg]:text-[#721C24]"
+                                        >
                                             <AlertCircle className="h-4 w-4" />
-                                            <AlertDescription>
-                                                {errorMessage}
+                                            <AlertDescription className="text-[#721C24] font-medium">
+                                                {errorMessage ||
+                                                    'An error occurred during registration'}
                                             </AlertDescription>
                                         </Alert>
                                     </motion.div>

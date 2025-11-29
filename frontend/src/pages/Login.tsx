@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardTitle } from '@/components/ui/card'
@@ -42,7 +42,9 @@ type ApiError = {
 export default function Login() {
     const location = useLocation()
     const navigate = useNavigate()
-    const message = location.state?.message
+    const [message, setMessage] = useState(location.state?.message || '')
+    const [showSuccess, setShowSuccess] = useState(false)
+    const [showError, setShowError] = useState(false)
 
     const {
         register,
@@ -58,14 +60,26 @@ export default function Login() {
     const mutation = useMutation({
         mutationFn: userApi.login,
         onSuccess: (data) => {
-            // On successful login, you can navigate to dashboard or show success message
-            // For now, we'll show a success message
-            console.log('Login successful:', data)
+            // On successful login, show success message
+            setShowError(false)
+            setShowSuccess(true)
+            // Clear the location state message when login succeeds
+            setMessage('')
+            window.history.replaceState({}, document.title)
+            // Clear success message after 5 seconds
+            setTimeout(() => {
+                setShowSuccess(false)
+            }, 5000)
             // You can add navigation here: navigate('/dashboard')
         },
         onError: (error) => {
             // Error is already stored in mutation.error by React Query
-            console.error('Login error:', error)
+            setShowSuccess(false)
+            setShowError(true)
+            // Clear error message after 5 seconds
+            setTimeout(() => {
+                setShowError(false)
+            }, 5000)
         },
     })
 
@@ -106,17 +120,23 @@ export default function Login() {
     }, [mutation.isError, mutation.error, errorMessage])
 
     const handleFormSubmit = (data: LoginFormData) => {
+        // Clear previous notification states when submitting new form
+        setShowSuccess(false)
+        setShowError(false)
+        // Clear the location state message when submitting
+        setMessage('')
+        window.history.replaceState({}, document.title)
         // React Query will automatically handle error state on new mutation
         mutation.mutate(data)
     }
 
     // Clear location state message after component mounts
     useEffect(() => {
-        if (message) {
+        if (location.state?.message) {
             // Clear the message from location state
             window.history.replaceState({}, document.title)
         }
-    }, [message])
+    }, [location.state?.message])
 
     return (
         <div className="min-h-screen w-full bg-[#fef8ee] relative overflow-hidden text-[#4a2c2a]">
@@ -170,30 +190,50 @@ export default function Login() {
                                 </CardTitle>
                             </motion.div>
                             <CardContent className="space-y-8 p-0">
-                                {message && (
+                                {message && !showSuccess && (
                                     <motion.div variants={floatVariants}>
-                                        <Alert variant="success">
+                                        <Alert
+                                            className="rounded-[8px] border-[#1B5E20] border-2 bg-transparent text-[#1B5E20] [&>svg]:text-[#1B5E20]"
+                                            style={{
+                                                backgroundColor: 'transparent',
+                                            }}
+                                        >
                                             <CheckCircle2 className="h-4 w-4" />
-                                            <AlertDescription>
+                                            <AlertDescription className="text-[#1B5E20] font-medium text-lg">
                                                 {message}
                                             </AlertDescription>
                                         </Alert>
                                     </motion.div>
                                 )}
 
-                                {mutation.isSuccess && (
-                                    <motion.div variants={floatVariants}>
-                                        <Alert variant="success">
+                                {showSuccess && (
+                                    <motion.div
+                                        variants={floatVariants}
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                    >
+                                        <Alert
+                                            className="rounded-[8px] border-[#1B5E20] border-2 bg-transparent text-[#1B5E20] [&>svg]:text-[#1B5E20]"
+                                            style={{
+                                                backgroundColor: 'transparent',
+                                            }}
+                                        >
                                             <CheckCircle2 className="h-4 w-4" />
-                                            <AlertDescription>
+                                            <AlertDescription className="text-[#1B5E20] font-medium text-lg">
                                                 Login successful! Welcome back.
                                             </AlertDescription>
                                         </Alert>
                                     </motion.div>
                                 )}
 
-                                {mutation.isError && (
-                                    <motion.div variants={floatVariants}>
+                                {showError && (
+                                    <motion.div
+                                        variants={floatVariants}
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                    >
                                         <Alert
                                             variant="destructive"
                                             className="rounded-[8px] border-[#F5C6CB] bg-[#F8D7DA] text-[#721C24] [&>svg]:text-[#721C24]"
