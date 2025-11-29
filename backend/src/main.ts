@@ -1,10 +1,17 @@
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe, BadRequestException } from '@nestjs/common'
+import { ValidationPipe, BadRequestException, Logger } from '@nestjs/common'
 import { AppModule } from './app.module'
 import { AllExceptionsFilter } from './common/filters/http-exception.filter'
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor'
+import { setupSwagger } from './common/config/swagger.config'
+import { TrimPipe } from './common/pipes/trim.pipe'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const logger = new Logger('Bootstrap')
+  
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  })
 
   // Enable CORS for frontend
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
@@ -21,6 +28,12 @@ async function bootstrap() {
 
   // Global exception filter for better error handling
   app.useGlobalFilters(new AllExceptionsFilter())
+
+  // Global logging interceptor
+  app.useGlobalInterceptors(new LoggingInterceptor())
+
+  // Global trim pipe to sanitize input (remove whitespace)
+  app.useGlobalPipes(new TrimPipe())
 
   // Global validation pipe
   app.useGlobalPipes(
@@ -40,8 +53,15 @@ async function bootstrap() {
     })
   )
 
+  // Setup Swagger documentation (only in non-production)
+  if (process.env.NODE_ENV !== 'production') {
+    setupSwagger(app)
+    logger.log('Swagger documentation available at: http://localhost:3000/api')
+  }
+
   const port = process.env.PORT || 3000
   await app.listen(port)
-  console.log(`Application is running on: http://localhost:${port}`)
+  logger.log(`Application is running on: http://localhost:${port}`)
+  logger.log(`Environment: ${process.env.NODE_ENV || 'development'}`)
 }
 bootstrap()

@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useMutation } from '@tanstack/react-query'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -34,14 +34,8 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>
 
-type ApiError = {
-    message: string
-    error?: string
-}
-
 export default function Login() {
     const location = useLocation()
-    const navigate = useNavigate()
     const [message, setMessage] = useState(location.state?.message || '')
     const [showSuccess, setShowSuccess] = useState(false)
     const [showError, setShowError] = useState(false)
@@ -59,7 +53,7 @@ export default function Login() {
 
     const mutation = useMutation({
         mutationFn: userApi.login,
-        onSuccess: (data) => {
+        onSuccess: () => {
             // On successful login, show success message
             setShowError(false)
             setShowSuccess(true)
@@ -72,7 +66,7 @@ export default function Login() {
             }, 5000)
             // You can add navigation here: navigate('/dashboard')
         },
-        onError: (error) => {
+        onError: () => {
             // Error is already stored in mutation.error by React Query
             setShowSuccess(false)
             setShowError(true)

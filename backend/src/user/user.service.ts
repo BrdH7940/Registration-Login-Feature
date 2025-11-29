@@ -3,6 +3,7 @@ import {
   ConflictException,
   InternalServerErrorException,
   UnauthorizedException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -15,6 +16,8 @@ import { LoginResponseDto } from './dto/login-response.dto';
 
 @Injectable()
 export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async register(registerUserDto: RegisterUserDto): Promise<RegisterResponseDto> {
@@ -23,6 +26,7 @@ export class UserService {
     // Check if user already exists
     const existingUser = await this.userModel.findOne({ email });
     if (existingUser) {
+      this.logger.warn(`Registration attempt with existing email: ${email}`);
       throw new ConflictException('Email already registered');
     }
 
@@ -39,6 +43,7 @@ export class UserService {
       });
 
       const savedUser = await user.save();
+      this.logger.log(`User registered successfully: ${email}`);
 
       return {
         message: 'User registered successfully',
@@ -50,8 +55,10 @@ export class UserService {
     } catch (error) {
       // Handle duplicate key error (email unique constraint)
       if (error.code === 11000) {
+        this.logger.warn(`Duplicate key error during registration: ${email}`);
         throw new ConflictException('Email already registered');
       }
+      this.logger.error(`Error registering user: ${email}`, error.stack);
       throw new InternalServerErrorException(
         'An error occurred while registering the user'
       );
@@ -64,15 +71,18 @@ export class UserService {
     // Find user by email
     const user = await this.userModel.findOne({ email });
     if (!user) {
+      this.logger.warn(`Login attempt with non-existent email: ${email}`);
       throw new UnauthorizedException('Invalid email or password');
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      this.logger.warn(`Login attempt with invalid password for: ${email}`);
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    this.logger.log(`User logged in successfully: ${email}`);
     return {
       message: 'Login successful',
       user: {

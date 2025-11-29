@@ -37,11 +37,6 @@ const signUpSchema = z.object({
 
 type SignUpFormData = z.infer<typeof signUpSchema>
 
-type ApiError = {
-    message: string
-    error?: string
-}
-
 export default function SignUp() {
     const navigate = useNavigate()
     const [showSuccess, setShowSuccess] = useState(false)
@@ -71,7 +66,7 @@ export default function SignUp() {
                 })
             }, 2000)
         },
-        onError: (error) => {
+        onError: () => {
             setShowSuccess(false)
             setShowError(true)
             // Clear error message after 5 seconds

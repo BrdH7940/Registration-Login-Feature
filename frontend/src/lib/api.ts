@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { type AxiosError } from 'axios'
 
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
@@ -8,7 +8,48 @@ export const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    timeout: 10000, // 10 seconds timeout
 })
+
+// Request interceptor
+api.interceptors.request.use(
+    (config) => {
+        // Add any auth tokens here if needed in the future
+        // const token = localStorage.getItem('token')
+        // if (token) {
+        //     config.headers.Authorization = `Bearer ${token}`
+        // }
+        return config
+    },
+    (error: AxiosError) => {
+        return Promise.reject(error)
+    }
+)
+
+// Response interceptor for better error handling
+api.interceptors.response.use(
+    (response) => response,
+    (error: AxiosError) => {
+        // Handle network errors
+        if (!error.response) {
+            console.error('Network error:', error.message)
+            return Promise.reject(
+                new Error('Network error. Please check your connection.')
+            )
+        }
+
+        // Handle specific status codes
+        const status = error.response.status
+        if (status === 401) {
+            // Handle unauthorized - could redirect to login
+            console.warn('Unauthorized request')
+        } else if (status >= 500) {
+            console.error('Server error:', error.response.data)
+        }
+
+        return Promise.reject(error)
+    }
+)
 
 export interface RegisterRequest {
     email: string

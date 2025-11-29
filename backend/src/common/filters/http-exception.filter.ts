@@ -4,14 +4,18 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common'
-import { Response } from 'express'
+import { Response, Request } from 'express'
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger = new Logger(AllExceptionsFilter.name)
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
+    const request = ctx.getRequest<Request>()
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR
     let message = 'An error occurred'
@@ -33,6 +37,22 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
     } else if (exception instanceof Error) {
       message = exception.message
+    }
+
+    // Log error details
+    const errorLog = {
+      statusCode: status,
+      timestamp: new Date().toISOString(),
+      path: request.url,
+      method: request.method,
+      message: message,
+      ...(exception instanceof Error && exception.stack && { stack: exception.stack }),
+    }
+
+    if (status >= 500) {
+      this.logger.error(`${request.method} ${request.url}`, exception instanceof Error ? exception.stack : JSON.stringify(errorLog))
+    } else {
+      this.logger.warn(`${request.method} ${request.url} - ${message}`)
     }
 
     // Return format that frontend expects: { message: string }
