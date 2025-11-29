@@ -24,7 +24,6 @@ services:
     - type: web
       name: ia06-frontend
       env: static
-      region: oregon
       rootDir: frontend
       buildCommand: npm install && npm run build
       staticPublishPath: dist
