@@ -1,10 +1,7 @@
 .env
 node_modules/
 .npm_cache/
-DEPLOYMENT.md
-ENV_VARIABLES.md
-QUICK_DEPLOY.md
-BLUEPRINT_DEPLOY.md
+*.md
 
 # Logs
 logs
