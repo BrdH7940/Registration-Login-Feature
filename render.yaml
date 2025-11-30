@@ -6,7 +6,7 @@ services:
       plan: free
       region: oregon
       rootDir: backend
-      buildCommand: NODE_ENV= npm ci && npm run build
+      buildCommand: npm ci && npm run build
       startCommand: npm run start:prod
       envVars:
           - key: NODE_ENV
