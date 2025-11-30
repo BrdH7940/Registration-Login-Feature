@@ -232,7 +232,7 @@ Health check endpoint.
 
 ```env
 PORT=3000
-CONNECTIONSTRING=mongodb://localhost:27017/ia06
+MONGODB_CONNECTIONSTRING=<USE_YOUR_OWN>
 FRONTEND_URL=http://localhost:5173
 NODE_ENV=development
 ```

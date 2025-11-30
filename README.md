@@ -19,7 +19,7 @@ npm install
 
 # Create .env file
 echo "PORT=3000
-CONNECTIONSTRING=mongodb://localhost:27017/ia06
+MONGODB_CONNECTIONSTRING=<USE_YOUR_OWN>
 FRONTEND_URL=http://localhost:5173" > .env
 
 npm run start:dev
@@ -49,4 +49,4 @@ npm run dev
 
 1. Create account at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 2. Get connection string
-3. Update `CONNECTIONSTRING` in `backend/.env`
+3. Update `MONGODB_CONNECTIONSTRING` in `backend/.env`
