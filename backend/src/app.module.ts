@@ -14,7 +14,6 @@ import { HealthController } from './common/health/health.controller'
     }),
     MongooseModule.forRoot(
       process.env.MONGODB_CONNECTIONSTRING ||
-        process.env.CONNECTIONSTRING ||
         'mongodb://localhost:27017/ia06'
     ),
     UserModule,
